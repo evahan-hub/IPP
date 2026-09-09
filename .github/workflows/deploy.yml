@@ -1,0 +1,39 @@
+name: Deploy to GitHub Pages
+
+# The @adyen/bento-* packages come from Adyen's private internal registry,
+# which GitHub-hosted runners cannot reach. So we do NOT build here — we deploy
+# the pre-built dist/ that is committed to the repo. To update the live site:
+#   npm run build   (locally, with registry access) and commit the dist/ changes.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Upload pre-built dist artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
